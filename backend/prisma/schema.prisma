@@ -1,0 +1,65 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id           String        @id @default(uuid())
+  nome         String
+  email        String        @unique
+  senha        String
+  criadoEm     DateTime      @default(now())
+  restaurantes Restaurante[]
+
+  @@map("usuarios")
+}
+
+model Restaurante {
+  id          String      @id @default(uuid())
+  nome        String
+  descricao   String?
+  usuarioId   String
+  slug        String      @unique
+  criadoEm    DateTime    @default(now())
+  atualizadoEm DateTime   @updatedAt
+  
+  usuario     Usuario     @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  categorias  Categoria[]
+  itens       Item[]
+
+  @@map("restaurantes")
+}
+
+model Categoria {
+  id            String      @id @default(uuid())
+  nome          String
+  restauranteId String
+  criadoEm      DateTime    @default(now())
+  
+  restaurante   Restaurante @relation(fields: [restauranteId], references: [id], onDelete: Cascade)
+  itens         Item[]
+
+  @@unique([nome, restauranteId])
+  @@map("categorias")
+}
+
+model Item {
+  id            String      @id @default(uuid())
+  nome          String
+  preco         Float
+  descricao     String?
+  categoriaId   String
+  restauranteId String
+  criadoEm      DateTime    @default(now())
+  atualizadoEm  DateTime    @updatedAt
+  
+  categoria     Categoria   @relation(fields: [categoriaId], references: [id], onDelete: Cascade)
+  restaurante   Restaurante @relation(fields: [restauranteId], references: [id], onDelete: Cascade)
+
+  @@map("itens")
+}
+
